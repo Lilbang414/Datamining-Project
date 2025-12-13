@@ -1,10 +1,11 @@
 import random
+import itertools
 class apriori:
     
     def __init__(self):
         self.items = []
         self.itemSets = ()
-        self.supThresh = 3
+        self.supThresh = 20
         self
         
     def createDataStream(self,items):
@@ -21,18 +22,32 @@ class apriori:
             self.itemSets = self.itemSets + (itemSet,)
             itemSet = []
             count = count + 1
-        print(self.itemSets[0])
-        print(self.itemSets[78])
-        print(self.itemSets[50])
-       # self.findSupport()
+        for i in range(len(self.itemSets)):
+                print(self.itemSets[i])
+        self.findSupport()
 
 
- #   def findSupport(self):
-       # for i in range(len(self.itemSets)):
-           # for j in range(len(self.itemSets[i])):
-              #  print(self.itemSets[i][j])
+    def findSupport(self):
+        support = {item: 0 for item in self.items}
+        for i in range(len(self.itemSets)):
+           for j in range(len(self.itemSets[i])):
+            support[self.itemSets[i][j]] = support.get(self.itemSets[i][j], 0) + 1
+        L1 = {item for item, count in support.items()
+            if count >= self.supThresh}
+        loopCount = 2
+        Lremain = list(itertools.combinations(L1, loopCount))
+        while not (len(Lremain) == 0):
+            support2 = {}
+            for item in Lremain:
+                for i in range(len(self.itemSets)):
+                    if set(item).issubset(self.itemSets[i]):
+                        support2[item] = support2.get(item, 0) + 1
+            Lprune = {item for item, count in support2.items()
+                    if count >= self.supThresh}
+            loopCount += 1
+            Lremain = list(itertools.combinations(set(itertools.chain.from_iterable(Lprune)), loopCount))
+
         
-        
-items = ["bread", "eggs", "coffee", "donuts", "apples", "pairs", "cookies", "soda", "cereal", "applesauce"]
+items = ["bread", "eggs", "coffee", "donuts", "apples", "pears", "cookies", "soda", "cereal", "applesauce"]
 test = apriori()
 test.createDataStream(items)
