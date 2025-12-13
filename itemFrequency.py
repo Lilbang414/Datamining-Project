@@ -5,13 +5,13 @@ class apriori:
     def __init__(self):
         self.items = []
         self.itemSets = ()
-        self.supThresh = 20
-        self
+        self.supThresh = 10
         
     def createDataStream(self,items):
         self.items = items
         itemSet = []
         count = 0
+
         while count < 100:
             setSize = random.randrange(1,len(self.items))
             for _ in range(setSize):
@@ -34,6 +34,8 @@ class apriori:
             support[self.itemSets[i][j]] = support.get(self.itemSets[i][j], 0) + 1
         L1 = {item for item, count in support.items()
             if count >= self.supThresh}
+        all_L = []
+        all_L.append(L1)
         loopCount = 2
         Lremain = list(itertools.combinations(L1, loopCount))
         while not (len(Lremain) == 0):
@@ -44,10 +46,14 @@ class apriori:
                         support2[item] = support2.get(item, 0) + 1
             Lprune = {item for item, count in support2.items()
                     if count >= self.supThresh}
+            if len(Lprune) == 0:
+                break
+            all_L.append(Lprune)
             loopCount += 1
             Lremain = list(itertools.combinations(set(itertools.chain.from_iterable(Lprune)), loopCount))
+        print(all_L)
 
-        
+
 items = ["bread", "eggs", "coffee", "donuts", "apples", "pears", "cookies", "soda", "cereal", "applesauce"]
 test = apriori()
 test.createDataStream(items)
