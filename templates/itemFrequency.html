@@ -11,12 +11,59 @@
     <form method="POST">
         <label for="supThresh">Enter a Support Threshold (1-100):</label>
         <input type="number" id="supThresh" name="supThresh" max="100" min="1">
-
+        {% if error %}
+            {{error}}
+        {% endif %}
         <button type="submit" name="action" value="support">Find Frequent Item Sets</button>
     </form>
 
-    {% if result %}
-        <p>{{ result }}</p>
-    {%  endif %}
+    <h3><strong>Confindence:</strong></h3>
+    <form method="POST">
+        <label for="item1">Out of all transactions that contain:</label>
+
+        <select name="item1" id="item1">
+            <option value="">-- Select --</option>
+            <option value="bread">Bread</option>
+            <option value="eggs">Eggs</option>
+            <option value="coffee">Coffee</option>
+            <option value="donuts">Donuts</option>
+            <option value="apples">Apples</option>
+            <option value="pears">Pears</option>
+            <option value="cookies">Cookies</option>
+            <option value="soda">Soda</option>
+            <option value="cereal">Cereal</option>
+            <option value="applesauce">Applesauce</option>
+
+         </select>
+      <label for="item2">How many also contain:</label>
+
+      <select name="item2" id="item2">
+            <option value="">-- Select --</option>
+            <option value="bread">Bread</option>
+            <option value="eggs">Eggs</option>
+            <option value="coffee">Coffee</option>
+            <option value="donuts">Donuts</option>
+            <option value="apples">Apples</option>
+            <option value="pears">Pears</option>
+            <option value="cookies">Cookies</option>
+            <option value="soda">Soda</option>
+            <option value="cereal">Cereal</option>
+            <option value="applesauce">Applesauce</option>
+
+        </select>
+
+        <button type="submit" name="action" value="confidence">Find Confidence</button>
+    </form>
+    <strong>{{requestedConfidence}}</strong>
+    {%if display%}
+        <p>When {{item1}} shows up in the buyers cart there is a {{requestedConfidence}}% chance that {{item2}} will also be added</p>
+    {% endif %}
+
+    {% for levels in result%}
+        <strong>L{{loop.index}}</strong>
+        <p>{{levels}}</p>
+    {%  endfor %}
+
+    
 </body>
 </html>

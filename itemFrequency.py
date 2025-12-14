@@ -1,5 +1,6 @@
 import random
 import itertools
+
 from flask import Flask, render_template, request
 app = Flask(__name__)
 
@@ -52,18 +53,78 @@ class apriori:
             loopCount += 1
             Lremain = list(itertools.combinations(set(itertools.chain.from_iterable(Lprune)), loopCount))
         return all_L
-
+    def Support(self,item):
+        support = 0
+        for i in range(len(self.itemSets)):
+            for j in range(len(self.itemSets[i])):
+                if item == self.itemSets[i][j]:
+                    support = support + 1
+        return support
+    def SupportXUY(self,item1,item2):
+        support = 0
+        item1in = False
+        item2in = False
+        for i in range(len(self.itemSets)):
+            for j in range(len(self.itemSets[i])):
+                if item1 == self.itemSets[i][j]:
+                    item1in = True
+                if item2 == self.itemSets[i][j]:
+                    item2in = True
+                if item1in and item2in:
+                    break
+            if item1in and item2in:
+                support += 1
+            item1in = False
+            item2in = False
+        return support
+                    
+    def findConfidence(self,item1,item2):
+        confidence = float(self.SupportXUY(item1,item2)/self.Support(item1))
+        confidence = round(confidence * 100, 2)
+        return confidence
+        
 @app.route("/", methods=["GET", "POST"])
 def main():
     result = None
+    error = None
+    display = False
+    levels = 0
+    a = apriori()
+    items = ["bread", "eggs", "coffee", "donuts", "apples", "pears", "cookies", "soda", "cereal", "applesauce"]
+    a.createDataStream(items)
+  
     if request.method == "POST":
-        supThresh = int(request.form.get("supThresh", 20))
-        items = ["bread", "eggs", "coffee", "donuts", "apples", "pears", "cookies", "soda", "cereal", "applesauce"]
-        a = apriori()
-        a.supThresh = supThresh
-        a.createDataStream(items)
-        result = a.findSupport()
-    return render_template("itemFrequency.html", result=result)
+        action = request.form.get("action")
+        if action == "confidence":
+            item1 = request.form.get("item1")
+            item2 = request.form.get("item2")
+            display = True
+            requestedConfidence = a.findConfidence(item1, item2)
+            return render_template("itemFrequency.html", requestedConfidence=requestedConfidence,item1 = item1, item2 = item2, display = display)
+            
+        try:    
+
+            supThresh = int(request.form.get("supThresh", 20))
+            a.supThresh = supThresh
+            result = a.findSupport()
+
+
+            levels = len(result)
+            return render_template("itemFrequency.html", result=result, error = error,levels = levels)
+
+        except ValueError:
+            error = "Must be a number 1-100"
+    return render_template("itemFrequency.html", error = error)
 
 if __name__ == "__main__":
+    test = apriori()
+    items = ["bread", "eggs", "coffee", "donuts", "apples", "pears", "cookies", "soda", "cereal", "applesauce"]
+    test.createDataStream(items)
+    print(test.Support("bread"))
+    print(test.SupportXUY("bread", "coffee"))
+    print(test.findConfidence("bread", "coffee"))
+
+    
+
     app.run(debug=True)
+    
