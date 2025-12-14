@@ -7,16 +7,110 @@
 <body>
     <h1>Item Frequency Finder</h1>
 
-    <h4>Apriori Algorithm</h4>
+    <h3><strong>Apriori Algorithm:</strong></h3>
     <form method="POST">
         <label for="supThresh">Enter a Support Threshold (1-100):</label>
         <input type="number" id="supThresh" name="supThresh" max="100" min="1">
-
+        {% if error %}
+            {{error}}
+        {% endif %}
         <button type="submit" name="action" value="support">Find Frequent Item Sets</button>
     </form>
 
-    {% if result %}
-        <p>{{ result }}</p>
-    {%  endif %}
+    {% for levels in result%}
+       {% if levels %}
+            <strong>L{{loop.index}}</strong>
+            <p>{{levels}}</p>
+        {% else %}
+            <p>There are no items within this support threshold</p>
+        {% endif %}
+    {%  endfor %}
+
+    {% if displayAll %}
+    <h3><strong>Associate Rules:</strong></h3>
+    <form method="POST">
+        <label for="item1">Out of all transactions that contain:</label>
+
+        <select name="item1" id="item1">
+            <option value="">-- Select --</option>
+            <option value="bread">Bread</option>
+            <option value="eggs">Eggs</option>
+            <option value="coffee">Coffee</option>
+            <option value="donuts">Donuts</option>
+            <option value="apples">Apples</option>
+            <option value="pears">Pears</option>
+            <option value="cookies">Cookies</option>
+            <option value="soda">Soda</option>
+            <option value="cereal">Cereal</option>
+            <option value="applesauce">Applesauce</option>
+
+         </select>
+      <label for="item2">How many also contain:</label>
+
+      <select name="item2" id="item2">
+            <option value="">-- Select --</option>
+            <option value="bread">Bread</option>
+            <option value="eggs">Eggs</option>
+            <option value="coffee">Coffee</option>
+            <option value="donuts">Donuts</option>
+            <option value="apples">Apples</option>
+            <option value="pears">Pears</option>
+            <option value="cookies">Cookies</option>
+            <option value="soda">Soda</option>
+            <option value="cereal">Cereal</option>
+            <option value="applesauce">Applesauce</option>
+
+        </select>
+
+        <button type="submit" name="action" value="confidence">Find Confidence</button>
+    </form>
+
+    {%if display%}
+        <h4><strong>Support</strong></h4>
+        <p>Customers purchased {{ item1 }} with {{ item2 }} <strong>{{requestedSupport}}</strong> times out of 100</p>
+    {% endif %}
+
+    {%if display%}
+        <h4><strong>Confidence</strong></h4>
+        <p>When {{item1}} shows up in the buyers cart there is a <strong>{{requestedConfidence}}</strong>% chance that {{item2}} will also be added</p>
+    {% endif %}
+
+    {% if display %}
+        <h4><strong>Interest</strong></h4>
+        <p>The interest between {{ item1 }} and {{ item2 }} is {{ requestedInterest }}</p>
+    {% endif %}
+
+    <h3><strong>All Supports:</strong></h3>
+    <form method="POST">
+        <label for="item3">Choose an item to find all supports:</label>
+
+        <select name="item3" id="item3">
+            <option value="">-- Select --</option>
+            <option value="bread">Bread</option>
+            <option value="eggs">Eggs</option>
+            <option value="coffee">Coffee</option>
+            <option value="donuts">Donuts</option>
+            <option value="apples">Apples</option>
+            <option value="pears">Pears</option>
+            <option value="cookies">Cookies</option>
+            <option value="soda">Soda</option>
+            <option value="cereal">Cereal</option>
+            <option value="applesauce">Applesauce</option>
+         </select>
+
+        <button type="submit" name="action" value="allSupports">Find supports</button>
+    </form>
+
+    {%if display2 %}
+            {% for allItems, support in requestedAllSupports.items()%}
+                {% if item3 == allItems %}
+                    <p>Customers purchased {{ item3 }} {{ support }} times out of 100</p>
+                {% else %}
+                    <p>Customers purchased {{ item3 }} with {{ allItems }} {{ support }} times out of 100</p>
+                {% endif %}
+
+            {% endfor %}
+    {% endif %}
+    {% endif %}
 </body>
 </html>
