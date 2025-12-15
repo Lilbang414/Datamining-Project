@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <title>Item Frequency Finder</title>
 </head>
+<style>
+    body{
+        background-color: LightGray;
+        color: black;
+    }
+
+    .aBorder {
+        border: 2px solid Black;
+        padding: 12px;
+        width: fit-content;
+        background-color: white;
+    }
+</style>
 <body>
     <h1>Item Frequency Finder</h1>
 
@@ -17,14 +30,15 @@
         <button type="submit" name="action" value="support">Find Frequent Item Sets</button>
     </form>
 
-    {% for levels in result%}
-       {% if levels %}
+    {% if result %}
+    <br>
+    <div class="aBorder">
+        {% for levels in result%}
             <strong>L{{loop.index}}</strong>
             <p>{{levels}}</p>
-        {% else %}
-            <p>There are no items within this support threshold</p>
-        {% endif %}
-    {%  endfor %}
+        {%  endfor %}
+    </div>
+    {% endif %}
 
     {% if displayAll %}
     <h3><strong>Associate Rules:</strong></h3>
@@ -65,19 +79,24 @@
         <button type="submit" name="action" value="confidence">Find Confidence</button>
     </form>
 
-    {%if display%}
-        <h4><strong>Support</strong></h4>
-        <p>Customers purchased {{ item1 }} with {{ item2 }} <strong>{{requestedSupport}}</strong> times out of 100</p>
+    {%if displayError %}
+        {% if error2 %}
+            <strong>{{error2}}</strong>
+        {% endif %}
     {% endif %}
 
+
     {%if display%}
+    <div class="aBorder">
+        <h4><strong>Support</strong></h4>
+        <p>The support between {{ item1 }} and {{ item2 }} is <strong>{{requestedSupport}}</strong></p>
+
         <h4><strong>Confidence</strong></h4>
         <p>When {{item1}} shows up in the buyers cart there is a <strong>{{requestedConfidence}}</strong>% chance that {{item2}} will also be added</p>
-    {% endif %}
 
-    {% if display %}
         <h4><strong>Interest</strong></h4>
         <p>The interest between {{ item1 }} and {{ item2 }} is {{ requestedInterest }}</p>
+    </div>
     {% endif %}
 
     <h3><strong>All Supports:</strong></h3>
@@ -101,7 +120,15 @@
         <button type="submit" name="action" value="allSupports">Find supports</button>
     </form>
 
+    {%if displayError2 %}
+        {% if error3 %}
+            <strong>{{error3}}</strong>
+        {% endif %}
+    {% endif %}
+
+
     {%if display2 %}
+    <div class="aBorder">
             {% for allItems, support in requestedAllSupports.items() %}
                 {% if item3 == allItems %}
                     <p>Customers purchased {{ item3 }} {{ support }} times out of 100</p>
@@ -110,7 +137,9 @@
                 {% endif %}
 
             {% endfor %}
+    </div>
     {% endif %}
+
     {% endif %}
 </body>
 </html>

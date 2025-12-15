@@ -7,14 +7,15 @@ from flask import Flask, render_template, request
 app = Flask(__name__)
 
 
-
 class apriori:
 
+    # Creates a basic definition for the apriori class
     def __init__(self):
         self.items = []
         self.itemSets = ()
         self.supThresh = 20
 
+    # Creates a data stream for 100 different customers
     def createDataStream(self, items):
         self.items = items
         itemSet = []
@@ -26,8 +27,9 @@ class apriori:
                 item = random.choice(self.items)
                 if item not in itemSet:
                     itemSet.append(item)
+                # Rigs the system to see the apples are bought more with pears
                 if item == 'apples' and 'pears' not in itemSet:
-                    chance = random.choice([1,2])
+                    chance = random.choice([1, 2])
                     if chance == 1:
                         itemSet.append('pears')
                 if item == 'pears' and 'apples' not in itemSet:
@@ -38,6 +40,7 @@ class apriori:
             itemSet = []
             count = count + 1
 
+    #This method goes through the apriori algorithm
     def findSupport(self):
         support = {item: 0 for item in self.items}
         for i in range(len(self.itemSets)):
@@ -64,6 +67,7 @@ class apriori:
             Lremain = list(itertools.combinations(sorted(set(itertools.chain.from_iterable(Lprune))), loopCount))
         return all_L
 
+    # Finds the support of an item
     def Support(self, item):
         support = 0
         for i in range(len(self.itemSets)):
@@ -72,6 +76,7 @@ class apriori:
                     support = support + 1
         return support
 
+    # Finds the support between two items
     def SupportXUY(self, item1, item2):
         support = 0
         item1in = False
@@ -90,18 +95,21 @@ class apriori:
             item2in = False
         return support
 
+    # Calculates the confidence
     def findConfidence(self, item1, item2):
         confidence = float(self.SupportXUY(item1, item2) / self.Support(item1))
         confidence = round(confidence * 100, 2)
         return confidence
 
+    # Calculates the interest
     def findInterest(self, confidence, item2):
         support = self.Support(item2)
         pSupport = (support / len(self.itemSets)) * 100
-        interest = confidence-pSupport
-        interestFinal = Fraction(interest/100).limit_denominator(100)
+        interest = confidence - pSupport
+        interestFinal = Fraction(interest / 100).limit_denominator(100)
         return interestFinal
 
+    # Finds all supports related to an item
     def findAllSupports(self, item):
         allSupports = {}
         allSupports[item] = self.Support(item)
@@ -110,21 +118,69 @@ class apriori:
                 allSupports[allOtherItems] = (self.SupportXUY(item, allOtherItems))
         return allSupports
 
+
 a = apriori()
 items = ["bread", "eggs", "coffee", "donuts", "apples", "pears", "cookies", "soda", "cereal", "applesauce"]
 a.createDataStream(items)
 
+
 @app.route("/", methods=["GET", "POST"])
 def main():
     global a
-    result = None
+    result = 0
     error = None
     display = False
     levels = 0
 
-
     if request.method == "POST":
         action = request.form.get("action")
+
+        result = a.findSupport()
+        levels = len(result)
+        displayAll = True
+
+        if action == "confidence":
+            item1 = request.form.get("item1")
+            item2 = request.form.get("item2")
+            display = True
+            displayAll = True
+            displayError = False
+
+            if not item1 or not item2:
+                error2 = "PLEASE MAKE A SELECTION FOR BOTH ITEMS"
+                display = False
+                displayError = True
+                return render_template("itemFrequency.html", displayError="displayError", error2=error2, item1=item1, item2=item2, display=display, displayAll=displayAll, levels=levels, result=result)
+            if item1 == item2:
+                error2 = "PLEASE SELECT DIFFERENT ITEMS"
+                display = False
+                displayError = True
+                return render_template("itemFrequency.html", displayError="displayError", error2=error2, item1=item1, item2=item2, display=display, displayAll=displayAll, levels=levels, result=result)
+
+            requestedSupport = a.SupportXUY(item1, item2)
+            requestedConfidence = a.findConfidence(item1, item2)
+            requestedInterest = a.findInterest(requestedConfidence, item2)
+            return render_template("itemFrequency.html", requestedConfidence=requestedConfidence,
+                                   requestedSupport=requestedSupport, requestedInterest=requestedInterest,
+                                   item1=item1, item2=item2, display=display, displayAll=displayAll, levels=levels,
+                                   result=result)
+
+        if action == "allSupports":
+            item3 = request.form.get("item3")
+            display2 = True
+            displayAll = True
+            displayError2 = False
+
+            if not item3:
+                error3 = "PLEASE MAKE A SELECTION FOR THE ITEM"
+                display2 = False
+                displayError2 = True
+                return render_template("itemFrequency.html", error3=error3, item3=item3,
+                                   display2=display2, displayError2=displayError2, displayAll=displayAll, levels=levels, result=result)
+
+            requestedAllSupports = a.findAllSupports(item3)
+            return render_template("itemFrequency.html", requestedAllSupports=requestedAllSupports, item3=item3,
+                                   display2=display2, displayAll=displayAll, levels=levels, result=result)
 
         if action == "support":
             try:
@@ -132,29 +188,11 @@ def main():
                 a.supThresh = supThresh
                 result = a.findSupport()
                 levels = len(result)
-                displayAll = True
-                return render_template("itemFrequency.html", displayAll=displayAll, result=result, error=error, levels=levels)
+                return render_template("itemFrequency.html", displayAll=displayAll, result=result, error=error,
+                                       levels=levels)
 
             except ValueError:
                 error = "Must be a number 1-100"
-
-        if action == "confidence":
-            item1 = request.form.get("item1")
-            item2 = request.form.get("item2")
-            display = True
-            displayAll = True
-            requestedSupport = a.SupportXUY(item1, item2)
-            requestedConfidence = a.findConfidence(item1, item2)
-            requestedInterest = a.findInterest(requestedConfidence, item2)
-            return render_template("itemFrequency.html", requestedConfidence=requestedConfidence, requestedSupport=requestedSupport, requestedInterest=requestedInterest,
-                                item1=item1, item2=item2, display=display, displayAll=displayAll)
-
-        if action == "allSupports":
-            item3 = request.form.get("item3")
-            display2 = True
-            displayAll = True
-            requestedAllSupports = a.findAllSupports(item3)
-            return render_template("itemFrequency.html", requestedAllSupports=requestedAllSupports, item3=item3, display2=display2, displayAll=displayAll)
 
     return render_template("itemFrequency.html", error=error)
 
@@ -168,5 +206,3 @@ if __name__ == "__main__":
     print(test.findConfidence("bread", "coffee"))
 
     app.run(debug=True)
-
-
