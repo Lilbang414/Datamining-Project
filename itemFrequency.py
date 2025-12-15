@@ -117,7 +117,7 @@ a.createDataStream(items)
 @app.route("/", methods=["GET", "POST"])
 def main():
     global a
-    result = None
+    result = 0
     error = None
     display = False
     levels = 0
@@ -126,17 +126,9 @@ def main():
     if request.method == "POST":
         action = request.form.get("action")
 
-        if action == "support":
-            try:
-                supThresh = int(request.form.get("supThresh", 20))
-                a.supThresh = supThresh
-                result = a.findSupport()
-                levels = len(result)
-                displayAll = True
-                return render_template("itemFrequency.html", displayAll=displayAll, result=result, error=error, levels=levels)
-
-            except ValueError:
-                error = "Must be a number 1-100"
+        result = a.findSupport()
+        levels = len(result)
+        displayAll = True
 
         if action == "confidence":
             item1 = request.form.get("item1")
@@ -147,14 +139,25 @@ def main():
             requestedConfidence = a.findConfidence(item1, item2)
             requestedInterest = a.findInterest(requestedConfidence, item2)
             return render_template("itemFrequency.html", requestedConfidence=requestedConfidence, requestedSupport=requestedSupport, requestedInterest=requestedInterest,
-                                item1=item1, item2=item2, display=display, displayAll=displayAll)
+                                item1=item1, item2=item2, display=display, displayAll=displayAll, levels = levels,result = result)
 
         if action == "allSupports":
             item3 = request.form.get("item3")
             display2 = True
             displayAll = True
             requestedAllSupports = a.findAllSupports(item3)
-            return render_template("itemFrequency.html", requestedAllSupports=requestedAllSupports, item3=item3, display2=display2, displayAll=displayAll)
+            return render_template("itemFrequency.html", requestedAllSupports=requestedAllSupports, item3=item3, display2=display2, displayAll=displayAll, levels = levels, result = result )
+        
+        if action == "support":
+            try:
+                supThresh = int(request.form.get("supThresh", 20))
+                a.supThresh = supThresh
+                result = a.findSupport()
+                levels = len(result)
+                return render_template("itemFrequency.html", displayAll=displayAll, result=result, error=error, levels=levels)
+
+            except ValueError:
+                error = "Must be a number 1-100"
 
     return render_template("itemFrequency.html", error=error)
 

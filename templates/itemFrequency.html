@@ -18,12 +18,8 @@
     </form>
 
     {% for levels in result%}
-       {% if levels %}
             <strong>L{{loop.index}}</strong>
             <p>{{levels}}</p>
-        {% else %}
-            <p>There are no items within this support threshold</p>
-        {% endif %}
     {%  endfor %}
 
     {% if displayAll %}
